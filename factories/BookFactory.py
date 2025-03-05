@@ -39,7 +39,10 @@ class BookFactory:
         # Ensure work exists
         work = Work.query.filter_by(open_library_key=book_key).first()
         if not work:
-            work = Work(title=title, open_library_key=book_key)
+            try:
+                work = Work(title=title, open_library_key=book_key, author_id=author_key)
+            except Exception as e:
+                print(e)
             db.session.add(work)
             db.session.commit()
 
