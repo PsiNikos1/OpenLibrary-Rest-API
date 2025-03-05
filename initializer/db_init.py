@@ -8,7 +8,7 @@ def initialize_database(app):
         from model.Author import Author
         from model.Work import Work
         from model.Book import Book
-
+        db.drop_all()
         db.create_all()
         fetch_books()
         print(" Tables created successfully!")
