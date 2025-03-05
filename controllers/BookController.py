@@ -12,11 +12,11 @@ class BookController:
         self.book_bp = Blueprint("book_bp", __name__)
         self.app = app
 
-        self.book_bp.add_url_rule("/books", "get_books", self.get_books, methods=["GET"])
-        self.book_bp.add_url_rule("/books/<int:book_id>", "get_book", self.get_book, methods=["GET"])
-        self.book_bp.add_url_rule("/books", "add_book", self.add_book, methods=["POST"])
-        self.book_bp.add_url_rule("/books/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
-        self.book_bp.add_url_rule("/books/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
+        self.book_bp.add_url_rule("/getAllBooks", "get_books", self.get_books, methods=["GET"])
+        self.book_bp.add_url_rule("/getBookByDbId/<int:book_id>", "get_book", self.get_book, methods=["GET"])
+        self.book_bp.add_url_rule("/addBook", "add_book", self.add_book, methods=["POST"])
+        self.book_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
+        self.book_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
 
         app.register_blueprint(self.book_bp)
 
@@ -29,7 +29,6 @@ class BookController:
         return jsonify({"title": book.title, "author": book.author.name, "work": book.work.title})
 
     def get_book_by_title(self, title):
-        """ Get a book by title """
         book = Book.query.filter(Book.title.ilike(f"%{title}%")).first()
         if book:
             return jsonify({
