@@ -57,22 +57,54 @@ class BookController:
 
     def add_book(self):
         data = request.get_json()
-        author = Author.query.filter_by(name=data["author"]).first()
+
+        title = data.get("title")
+        open_library_key = data.get("open_library_key")
+        author_name = data.get("author_name")
+        work_title = data.get("work_title")
+
+        if not title or not author_name or not work_title or not open_library_key:
+            return jsonify({"error": "Title, author_name, and work_title are required but not found"}), 400
+
+        author = Author.query.filter_by(name=author_name).first()
         if not author:
-            author = Author(name=data["author"])
+            author = Author(name=author_name, open_library_key=data.get("author_open_library_key"))
             db.session.add(author)
             db.session.commit()
 
-        work = Work.query.filter_by(title=data["work"]).first()
+        work = Work.query.filter_by(title=work_title).first()
         if not work:
-            work = Work(title=data["work"])
+            work = Work(title=work_title, open_library_key=data.get("work_open_library_key"), author_id=author.id)
             db.session.add(work)
             db.session.commit()
 
-        book = Book(title=data["title"], author_id=author.id, work_id=work.id)
+        book = Book(
+            title=title,
+            open_library_key=open_library_key,
+            author_id=author.id,
+            work_id=work.id,
+            publishers=data.get("publishers"),
+            number_of_pages=data.get("number_of_pages"),
+            isbn_10=data.get("isbn_10"),
+            edition_count=data.get("edition_count"),
+            subjects=", ".join(data.get("subjects", [])),
+            publish_date=data.get("publish_date"),
+            cover_id=data.get("cover_id"),
+            first_publish_year=data.get("first_publish_year"),
+            languages=", ".join(data.get("languages", [])) if data.get("languages") else None,
+            lending_edition=data.get("lending_edition"),
+            lending_identifier=data.get("lending_identifier"),
+            project_gutenberg_ids=", ".join(data.get("project_gutenberg_ids", [])),
+            librivox_ids=", ".join(data.get("librivox_ids", [])),
+            ia_identifiers=", ".join(data.get("ia_identifiers", [])),
+            public_scan=data.get("public_scan", False),
+        )
+
         db.session.add(book)
         db.session.commit()
-        return jsonify({"message": "Book added successfully"}), 201
+        return jsonify({"message": f"Book with title '{title}'' added successfully", "book_Db_Id": book.id}), 201
+
+
 
     def delete_book(self, book_id):
         book = Book.query.get_or_404(book_id)
