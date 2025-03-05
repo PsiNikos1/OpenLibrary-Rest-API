@@ -19,7 +19,6 @@ class Book(db.Model):
     subjects = db.Column(db.Text)
     publish_date = db.Column(db.String(50))
     cover_id = db.Column(db.String(255))
-    open_library_key = db.Column(db.String(255), unique=True, nullable=False)
 
     first_publish_year = db.Column(db.Integer)
     languages = db.Column(db.String(255))
