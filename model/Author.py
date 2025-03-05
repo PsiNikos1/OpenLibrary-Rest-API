@@ -6,4 +6,6 @@ class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     open_library_key = db.Column(db.String(255), unique=True, nullable=False)  # authors/OL18319A
     name = db.Column(db.String(255), nullable=False, unique=True)
-    books = db.relationship("Book", backref="author", lazy=True)
+    books = db.relationship("Book", back_populates="author")
+    works = db.relationship("Work", back_populates="author")
+

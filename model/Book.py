@@ -10,6 +10,7 @@ class Book(db.Model):
     title = db.Column(db.String(255), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("author.id"), nullable=False)
     work_id = db.Column(db.Integer, db.ForeignKey("work.id"), nullable=False)
+    open_library_key = db.Column(db.String(255), unique=True, nullable=False)
 
     publishers = db.Column(db.String(255))
     number_of_pages = db.Column(db.Integer)
@@ -28,3 +29,6 @@ class Book(db.Model):
     librivox_ids = db.Column(db.String(255))
     ia_identifiers = db.Column(db.Text)
     public_scan = db.Column(db.Boolean, default=False)
+
+    author = db.relationship("Author", back_populates="books")
+    work = db.relationship("Work", back_populates="books")
