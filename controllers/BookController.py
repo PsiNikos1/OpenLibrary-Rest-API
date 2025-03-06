@@ -30,37 +30,16 @@ class BookController:
 
     def get_books(self):
         books = Book.query.all()
-        return jsonify([{"title": b.title, "author": b.author.name, "work": b.work.title} for b in books])
+        return jsonify([book.to_dict() for book in books]), 200
 
     def get_book(self, book_id):
         book = Book.query.get_or_404(book_id)
-        return jsonify({"title": book.title, "author": book.author.name, "work": book.work.title})
+        return jsonify(book.to_dict()), 200
 
     def get_book_by_title(self, title):
         book = Book.query.filter(Book.title.ilike(f"%{title}%")).first()
         if book:
-            return jsonify({
-                "id": book.id,
-                "title": book.title,
-                "author_id": book.author_id,
-                "work_id": book.work_id,
-                "publishers": book.publishers,
-                "number_of_pages": book.number_of_pages,
-                "isbn_10": book.isbn_10,
-                "edition_count": book.edition_count,
-                "subjects": book.subjects,
-                "publish_date": book.publish_date,
-                "cover_id": book.cover_id,
-                "open_library_key": book.open_library_key,
-                "first_publish_year": book.first_publish_year,
-                "languages": book.languages,
-                "lending_edition": book.lending_edition,
-                "lending_identifier": book.lending_identifier,
-                "project_gutenberg_ids": book.project_gutenberg_ids,
-                "librivox_ids": book.librivox_ids,
-                "ia_identifiers": book.ia_identifiers,
-                "public_scan": book.public_scan,
-            })
+            return jsonify(book.to_dict())
         return jsonify({"error": "Book not found"}), 404
 
     def add_book(self):
