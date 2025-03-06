@@ -64,6 +64,9 @@ class BookController:
         return jsonify({"error": "Book not found"}), 404
 
     def add_book(self):
+        """Adds a new book. Needs at least title, open_library_key, author_name, work_title, author_open_library_key,
+         work_open_library_key to be created.
+        """
         data = request.get_json()
 
         title = data.get("title")
@@ -113,20 +116,18 @@ class BookController:
         return jsonify({"message": f"Book with title '{title}'' added successfully", "book_Db_Id": book.id}), 201
 
     def filter_books(self):
+        """Filters the books for many criteria. It only works as AND filtering and NOT as or"""
         filters = request.get_json()
         r = []
-
         for field, value in filters.items():
             if hasattr(Book, field):
                 attribute = getattr(Book, field)
                 r.extend( db.session.query(Book).filter(attribute == value).all() )
-
-        print("HI")
-        print(r)
-        return  jsonify( [book.to_dict() for book in r] )
+        return  jsonify( [book.to_dict() for book in r] ), 200
 
     def delete_book(self, book_id):
+        """Deletes a book from its DB id"""
         book = Book.query.get_or_404(book_id)
         db.session.delete(book)
         db.session.commit()
-        return jsonify({"message": "Book deleted successfully"})
+        return jsonify({"message": f"Book with title ' {book.title} 'and id ' {book.id} 'deleted successfully"}), 200
