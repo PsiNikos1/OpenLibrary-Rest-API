@@ -11,3 +11,10 @@ class Work(db.Model):
     author = db.relationship("Author", back_populates="works")
     books = db.relationship("Book", back_populates="work")
 
+    def to_dict(self):
+        return {
+            "open_library_key": self.open_library_key,
+            "title": self.title,
+            "author_id": self.author_id
+        }
+

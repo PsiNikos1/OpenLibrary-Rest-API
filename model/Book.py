@@ -31,3 +31,11 @@ class Book(db.Model):
 
     author = db.relationship("Author", back_populates="books")
     work = db.relationship("Work", back_populates="books")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "author": self.author.to_dict(),
+            "open_library_key": self.open_library_key
+        }
