@@ -1,5 +1,11 @@
-import self
-from flask import Blueprint, jsonify, request
+from importlib.metadata import files
+
+from Tools.scripts.make_ctype import values
+from flask import Blueprint, jsonify, request, session
+from flask_restful import http_status_message
+from sqlalchemy import text, and_
+from sqlalchemy.orm import RelationshipProperty
+
 from model.Book import Book
 from model.Author import Author
 from model.Work import Work
@@ -17,6 +23,8 @@ class BookController:
         self.book_bp.add_url_rule("/addBook", "add_book", self.add_book, methods=["POST"])
         self.book_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
         self.book_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
+        self.book_bp.add_url_rule("/filter", "filter_books", self.filter_books, methods=["GET"])
+
 
         app.register_blueprint(self.book_bp)
 
@@ -104,7 +112,18 @@ class BookController:
         db.session.commit()
         return jsonify({"message": f"Book with title '{title}'' added successfully", "book_Db_Id": book.id}), 201
 
+    def filter_books(self):
+        filters = request.get_json()
+        r = []
 
+        for field, value in filters.items():
+            if hasattr(Book, field):
+                attribute = getattr(Book, field)
+                r.extend( db.session.query(Book).filter(attribute == value).all() )
+
+        print("HI")
+        print(r)
+        return  jsonify( [book.to_dict() for book in r] )
 
     def delete_book(self, book_id):
         book = Book.query.get_or_404(book_id)
