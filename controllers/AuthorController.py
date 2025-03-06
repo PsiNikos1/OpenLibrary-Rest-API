@@ -32,4 +32,8 @@ class AuthorController:
         authors = Author.query.all()
         return jsonify([author.to_dict() for author in authors])
 
-    
+    def get_author(self, author_id):
+        author = Author.query.get_or_404(author_id)
+        return jsonify(author.to_dict())
+
+   
