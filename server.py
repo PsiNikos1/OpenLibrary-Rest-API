@@ -20,7 +20,6 @@ book_controller = BookController(app, db)
 author_controller = AuthorController(app, db)
 
 if __name__ == "__main__":
-
-    app.run(debug=True)
+    app.run(debug=False)
 
 
