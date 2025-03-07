@@ -28,8 +28,14 @@ class Book(db.Model):
     librivox_ids = db.Column(db.String(255))
     ia_identifiers = db.Column(db.Text)
     public_scan = db.Column(db.Boolean, default=False)
+    lccn = db.Column(db.Integer),
+    publish_country = db.Column(db.Text),
+    by_statement = db.Column(db.Text),
+    ocaid = db.Column(db.Text),
+    notes = db.Column(db.Text),
+    genres = db.Column(db.Text)
 
-    author = db.relationship("Author", back_populates="books")
+    # author = db.relationship("Author", back_populates="works")
     work = db.relationship("Work", back_populates="books")
 
     def to_dict(self):
