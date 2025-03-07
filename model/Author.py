@@ -1,5 +1,3 @@
-from flask import jsonify
-
 from initializer.database import db
 
 work_author = db.Table(

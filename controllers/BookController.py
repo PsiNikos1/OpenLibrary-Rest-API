@@ -1,9 +1,5 @@
-from importlib.metadata import files
 
-from Tools.scripts.make_ctype import values
-from flask import Blueprint, jsonify, request, session
-from flask_restful import http_status_message
-from sqlalchemy import text, and_
+from flask import Blueprint, jsonify, request
 from sqlalchemy.orm import RelationshipProperty, ColumnProperty
 
 from factories.BookFactory import BookFactory

@@ -1,7 +1,5 @@
 from initializer.database import db
 from model.Author import Author
-from model.Work import Work
-
 
 class Book(db.Model):
     __tablename__ = "book"

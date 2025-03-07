@@ -1,6 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship
 from initializer.database import db
 from model.Author import work_author
 

@@ -7,7 +7,7 @@ from model.Book import Book
 SUBJECTS = ["fiction", "science", "history", "fantasy", "mystery", "romance", "horror"]
 
 
-def fetch_books(number_of_samples_per_subject=2):
+def fetch_books(number_of_samples_per_subject=20):
     print("Fetching books from Open Library...")
 
 

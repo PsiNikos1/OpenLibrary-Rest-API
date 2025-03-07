@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from model.Author import Author
 from initializer.db_init import db
 
@@ -12,11 +12,6 @@ class AuthorController:
         self.author_bp.add_url_rule("/getAllAuthors", "get_authors", self.get_authors, methods=["GET"])
         self.author_bp.add_url_rule("/getAuthorByDbId/<int:author_id>", "get_author", self.get_author, methods=["GET"])
         self.author_bp.add_url_rule("/filterAuthors", "filter_authors", self.filter_authors, methods=["GET"])
-
-        # self.author_bp.add_url_rule("/addAuthor", "get_author", self.add_book, methods=["POST"])
-        # self.author_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
-        # self.author_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
-
 
         app.register_blueprint(self.author_bp)
 
