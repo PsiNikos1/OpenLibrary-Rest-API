@@ -1,4 +1,7 @@
 import requests
+
+from factories.WorkFactory import WorkFactory
+from factories.AuthorFactory import AuthorFactory
 from initializer.database import db
 from model.Author import Author
 from model.Work import Work
@@ -7,75 +10,95 @@ from model.Book import Book
 class BookFactory:
 
     @staticmethod
-    def create_from_json(book_json):
+    def create_object(work_json):
 
-        # Extract book details
-        title = book_json.get("title", "Unknown Title")
-        book_key = book_json.get("key", "").replace("/works/", "")
-
-        # Extract author details (handling multiple authors)
-        author_keys = book_json.get("author_key", [])
-        author_names = book_json.get("author_name", [])
-
-        # Ensure at least one author exists
-        if not author_keys or not author_names:
-            author_keys = [f"unknown_{title.replace(' ', '_')}"]
-            author_names = ["Unknown Author"]
-
-        # Ensure author(s) exist
-        author_objects = []
-        for author_key, author_name in zip(author_keys, author_names):
-            # 🔍 Check if author exists (by Open Library Key OR Name)
-            author = Author.query.filter(
-                (Author.open_library_key == author_key) | (Author.name == author_name)
+        title = work_json.get("title")
+        book_key = work_json.get("key", "").replace("/works/", "")
+        authors = work_json["authors"]
+        db_authors = []
+        for work_author in authors:
+            new_author = Author.query.filter(
+                (Author.open_library_key == work_author.get("key").replace("/authors/", "")) | (Author.name == work_author.get("name"))
             ).first()
+            if new_author:
+                db_authors.append(new_author)
+                continue
+            author_url = work_author.get("key")
+            response = requests.get(f" https://openlibrary.org/{author_url}.json")
+            new_author = AuthorFactory.create_from_json(response.json())
+            db.session.add(new_author)
+            db.session.commit()
+            db_authors.append(new_author)
 
-            if not author:
-                author = Author(name=author_name, open_library_key=author_key)
-                db.session.add(author)
-                db.session.commit()
-            author_objects.append(author)
-
-        # Ensure work exists
         work = Work.query.filter_by(open_library_key=book_key).first()
         if not work:
-            try:
-                work = Work(title=title, open_library_key=book_key, author_id=author_key)
-            except Exception as e:
-                print(e)
+            work = WorkFactory.create_from_json(work_json, authors=db_authors)
             db.session.add(work)
             db.session.commit()
 
-        # Check if the book already exists
+        response = requests.get(f" https://openlibrary.org/books/{book_key}.json")
+        new_book = BookFactory.create_from_json(response.json(), book_key, db_authors[-1], work)
+        return new_book
+
+    @staticmethod
+    def create_from_json(book_json: dict, book_key, author: Author, work:Work)-> Book:
+
         existing_book = Book.query.filter_by(open_library_key=book_key).first()
         if existing_book:
             return existing_book
 
-        # Create book object
+        title = book_json.get("title")
+        if title is None or title == "":
+            raise Exception(f"Book title must not be null. Book key is '{book_key}'")
+
+        author_id = author.id
+        work_id = work.id
+        open_library_key = book_key
+
+        publishers = book_json.get("publishers")
+        number_of_pages = book_json.get("number_of_pages")
+        isbn_10 = book_json.get("isbn_10")
+        subject_place = book_json.get("subject_place")
+        covers = book_json.get("covers")
+        genres = book_json.get("genres")
+        lccn = book_json.get("lccn")
+        notes = book_json.get("notes")
+        languages = book_json.get("languages")
+        subjects = book_json.get("subjects")
+        publish_date = book_json.get("publish_date")
+        publish_country = book_json.get("publish_country")
+        by_statement = book_json.get("by_statement")
+        ocaid = book_json.get("ocaid")
+
+
+
         book = Book(
             title=title,
-            author_id=author_objects[0].id,  # Assign first author
-            work_id=work.id,
-            publishers=", ".join(book_json.get("publishers", [])),
-            number_of_pages=book_json.get("number_of_pages"),
-            isbn_10=", ".join(book_json.get("isbn_10", [])),
+            open_library_key= open_library_key,
+            author_id=author_id,
+            work_id=work_id,
+            publishers=publishers,
+            number_of_pages=number_of_pages,
+            isbn_10=isbn_10,
             edition_count=book_json.get("edition_count"),
-            subjects=", ".join(book_json.get("subject", [])),
-            publish_date=book_json.get("first_publish_year"),
-            cover_id=book_json.get("cover_i"),
-            open_library_key=book_key,
+            subjects=subjects,
+            publish_date=publish_date,
+            cover_id=covers,
             first_publish_year=book_json.get("first_publish_year"),
-            languages=", ".join(book_json.get("language", [])),
+            languages=languages,
             lending_edition=book_json.get("lending_edition_s"),
             lending_identifier=book_json.get("lending_identifier_s"),
-            project_gutenberg_ids=", ".join(book_json.get("id_project_gutenberg", [])),
-            librivox_ids=", ".join(book_json.get("id_librivox", [])),
-            ia_identifiers=", ".join(book_json.get("ia", [])),
-            public_scan=book_json.get("public_scan_b", False),
+            project_gutenberg_ids=book_json.get("id_project_gutenberg"),
+            librivox_ids=book_json.get("id_librivox", []),
+            ia_identifiers=book_json.get("ia", []),
+            public_scan=book_json.get("public_scan_b"),
+            lccn=lccn,
+            publish_country = publish_country,
+            by_statement=by_statement,
+            ocaid=ocaid,
+            notes=notes,
+            genres=genres
         )
-
-        # Save book
         db.session.add(book)
         db.session.commit()
-
         return book
