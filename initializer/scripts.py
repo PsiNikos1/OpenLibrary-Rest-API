@@ -6,18 +6,18 @@ from model.Author import Author
 from model.Work import Work
 from model.Book import Book
 
+
 # List of subjects to request books from
 SUBJECTS = ["fiction", "science", "history", "fantasy", "mystery", "romance", "horror"]
 
 
-def fetch_books(number_of_samples=200):
+def fetch_books(number_of_samples_per_subject=20):
     print("Fetching books from Open Library...")
-
-    response = requests.get(f"https://openlibrary.org/search.json?q=history?limit={number_of_samples}")
-    if response.status_code == 200:
-        data = response.json()
-        for doc in data["docs"]:
-            BookFactory.create_from_json(doc) #Creates new Books & Authors
+    for subject in SUBJECTS:
+        response = requests.get(f" https://openlibrary.org/subjects/{subject}.json?limit={number_of_samples_per_subject}")
+        if response.status_code == 200:
+            for work in response.json()["works"]:
+                BookFactory.create_object(work) #Creates new Books & Authors & Work
 
     db.session.commit()
     total_books = len(response.json()["docs"])
