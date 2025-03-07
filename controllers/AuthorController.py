@@ -1,14 +1,5 @@
-from importlib.metadata import files
-
-from Tools.scripts.make_ctype import values
 from flask import Blueprint, jsonify, request, session
-from flask_restful import http_status_message
-from sqlalchemy import text, and_
-from sqlalchemy.orm import RelationshipProperty
-
-from model.Book import Book
 from model.Author import Author
-from model.Work import Work
 from initializer.db_init import db
 
 
@@ -19,11 +10,12 @@ class AuthorController:
         self.app = app
 
         self.author_bp.add_url_rule("/getAllAuthors", "get_authors", self.get_authors, methods=["GET"])
-        self.author_bp.add_url_rule("/getBookByDbId/<int:book_id>", "get_book", self.get_book, methods=["GET"])
-        self.author_bp.add_url_rule("/addBook", "add_book", self.add_book, methods=["POST"])
-        self.author_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
-        self.author_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
-        self.author_bp.add_url_rule("/filter", "filter_books", self.filter_books, methods=["GET"])
+        self.author_bp.add_url_rule("/getAuthorByDbId/<int:author_id>", "get_author", self.get_author, methods=["GET"])
+        self.author_bp.add_url_rule("/filterAuthors", "filter_authors", self.filter_authors, methods=["GET"])
+
+        # self.author_bp.add_url_rule("/addAuthor", "get_author", self.add_book, methods=["POST"])
+        # self.author_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
+        # self.author_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
 
 
         app.register_blueprint(self.author_bp)
@@ -36,4 +28,13 @@ class AuthorController:
         author = Author.query.get_or_404(author_id)
         return jsonify(author.to_dict())
 
-   
+    def filter_authors(self):
+        """Filters the authors with many criteria. It only works as AND filtering and NOT as or"""
+        filters = request.get_json()
+        r = []
+        for field, value in filters.items():
+            if hasattr(Author, field):
+                attribute = getattr(Author, field)
+                r.extend( db.session.query(Author).filter(attribute == value).all() )
+        print(r)
+        return  jsonify( [author.to_dict() for author in r] ), 200
