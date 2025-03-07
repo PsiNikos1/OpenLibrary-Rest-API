@@ -18,7 +18,6 @@ class Book(db.Model):
     edition_count = db.Column(db.Integer)
     subjects = db.Column(db.Text)
     publish_date = db.Column(db.String(50))
-    cover_id = db.Column(db.String(255))
 
     first_publish_year = db.Column(db.Integer)
     languages = db.Column(db.String(255))
@@ -28,20 +27,22 @@ class Book(db.Model):
     librivox_ids = db.Column(db.String(255))
     ia_identifiers = db.Column(db.Text)
     public_scan = db.Column(db.Boolean, default=False)
-    lccn = db.Column(db.Integer),
-    publish_country = db.Column(db.Text),
-    by_statement = db.Column(db.Text),
-    ocaid = db.Column(db.Text),
-    notes = db.Column(db.Text),
+    lccn = db.Column(db.Integer)
+    publish_country = db.Column(db.Text)
+    by_statement = db.Column(db.Text)
+    ocaid = db.Column(db.Text)
+    notes = db.Column(db.Text)
     genres = db.Column(db.Text)
 
     # author = db.relationship("Author", back_populates="works")
+    author = db.relationship("Author", back_populates="books")
     work = db.relationship("Work", back_populates="books")
 
     def to_dict(self):
+        author = Author.query.filter_by(id=self.author_id).first()
         return {
             "id": self.id,
             "title": self.title,
-            "author": self.author.to_dict(),
+            "author": author.name,
             "open_library_key": self.open_library_key
         }

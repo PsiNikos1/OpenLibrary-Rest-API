@@ -1,11 +1,14 @@
-from initializer.database import db
+from flask import jsonify
 
+from initializer.database import db
 
 work_author = db.Table(
     "work_author",
     db.Column("work_id", db.Integer, db.ForeignKey("work.id"), primary_key=True),
     db.Column("author_id", db.Integer, db.ForeignKey("author.id"), primary_key=True)
 )
+
+
 class Author(db.Model):
     __tablename__ = "author"
 
@@ -18,6 +21,7 @@ class Author(db.Model):
     fuller_name = db.Column(db.String(255))
 
     works = db.relationship("Work", secondary=work_author, back_populates='authors')
+    books = db.relationship("Book", back_populates="author", lazy="dynamic")
 
     def to_dict(self):
         return {
@@ -28,7 +32,6 @@ class Author(db.Model):
             "birth_date": self.birth_date,
             "bio": self.bio,
             "fuller_name": self.fuller_name,
-            "works":self.works,
-            "books":self.books
+            "works": [work.to_dict() for work in self.works],
+            "books": [book.to_dict() for book in self.books]
         }
-
