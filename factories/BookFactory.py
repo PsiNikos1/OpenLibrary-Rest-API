@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 from factories.WorkFactory import WorkFactory
@@ -29,6 +31,8 @@ class BookFactory:
             db.session.add(new_author)
             db.session.commit()
             db_authors.append(new_author)
+            break
+
 
         work = Work.query.filter_by(open_library_key=book_key).first()
         if not work:
@@ -43,7 +47,7 @@ class BookFactory:
     @staticmethod
     def create_from_json(book_json: dict, book_key, author: Author, work:Work)-> Book:
 
-        existing_book = Book.query.filter_by(open_library_key=book_key).first()
+        existing_book = Book.query.filter_by(open_library_key=book_key, title= book_json.get("title")).first()
         if existing_book:
             return existing_book
 
@@ -55,20 +59,18 @@ class BookFactory:
         work_id = work.id
         open_library_key = book_key
 
-        publishers = book_json.get("publishers")
-        number_of_pages = book_json.get("number_of_pages")
-        isbn_10 = book_json.get("isbn_10")
-        subject_place = book_json.get("subject_place")
-        covers = book_json.get("covers")
-        genres = book_json.get("genres")
-        lccn = book_json.get("lccn")
-        notes = book_json.get("notes")
-        languages = book_json.get("languages")
-        subjects = book_json.get("subjects")
-        publish_date = book_json.get("publish_date")
-        publish_country = book_json.get("publish_country")
-        by_statement = book_json.get("by_statement")
-        ocaid = book_json.get("ocaid")
+        publishers = ",".join(book_json.get("publishers")) if isinstance(book_json.get("publishers"), list) else book_json.get("publishers")
+        number_of_pages = ",".join(book_json.get("number_of_pages")) if isinstance(book_json.get("number_of_pages"), list) else book_json.get("number_of_pages")
+        isbn_10 = ",".join(book_json.get("isbn_10")) if isinstance(book_json.get("isbn_10"), list) else book_json.get("isbn_10")
+        genres = ",".join(book_json.get("genres")) if isinstance(book_json.get("genres"), list) else book_json.get("genres")
+        lccn = ",".join(book_json.get("lccn")) if isinstance(book_json.get("lccn"), list) else book_json.get("lccn")
+        notes = ",".join(book_json.get("notes")) if isinstance(book_json.get("notes"), list) else book_json.get("notes")
+        languages = ",".join(book_json.get("languages")) if isinstance(book_json.get("languages"), list) else book_json.get("languages")
+        # subjects = book_json.get("subjects")
+        publish_date = ",".join(book_json.get("publish_date")) if isinstance(book_json.get("publish_date"), list) else book_json.get("publish_date")
+        publish_country = ",".join(book_json.get("publish_country")) if isinstance(book_json.get("publish_country"), list) else book_json.get("publish_country")
+        by_statement = ",".join(book_json.get("by_statement")) if isinstance(book_json.get("by_statement"), list) else book_json.get("by_statement")
+        ocaid = ",".join(book_json.get("ocaid")) if isinstance(book_json.get("ocaid"), list) else book_json.get("ocaid")
 
 
 
@@ -80,18 +82,17 @@ class BookFactory:
             publishers=publishers,
             number_of_pages=number_of_pages,
             isbn_10=isbn_10,
-            edition_count=book_json.get("edition_count"),
-            subjects=subjects,
+            edition_count=",".join(book_json.get("edition_count")) if isinstance(book_json.get("edition_count"), list) else book_json.get("edition_count"),
+            # subjects=subjects,
             publish_date=publish_date,
-            cover_id=covers,
             first_publish_year=book_json.get("first_publish_year"),
             languages=languages,
-            lending_edition=book_json.get("lending_edition_s"),
-            lending_identifier=book_json.get("lending_identifier_s"),
-            project_gutenberg_ids=book_json.get("id_project_gutenberg"),
-            librivox_ids=book_json.get("id_librivox", []),
-            ia_identifiers=book_json.get("ia", []),
-            public_scan=book_json.get("public_scan_b"),
+            lending_edition=",".join(book_json.get("lending_edition")) if isinstance(book_json.get("lending_edition"), list) else book_json.get("lending_edition"),
+            lending_identifier=",".join(book_json.get("lending_identifier")) if isinstance(book_json.get("lending_identifier"), list) else book_json.get("lending_identifier"),
+            project_gutenberg_ids=",".join(book_json.get("project_gutenberg_ids")) if isinstance(book_json.get("project_gutenberg_ids"), list) else book_json.get("project_gutenberg_ids"),
+            librivox_ids=",".join(book_json.get("librivox_ids")) if isinstance(book_json.get("librivox_ids"), list) else book_json.get("librivox_ids"),
+            ia_identifiers=",".join(book_json.get("ia_identifiers")) if isinstance(book_json.get("ia_identifiers"), list) else book_json.get("ia_identifiers"),
+            public_scan=",".join(book_json.get("public_scan")) if isinstance(book_json.get("public_scan"), list) else book_json.get("public_scan"),
             lccn=lccn,
             publish_country = publish_country,
             by_statement=by_statement,
