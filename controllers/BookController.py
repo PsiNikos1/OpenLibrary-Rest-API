@@ -4,8 +4,9 @@ from Tools.scripts.make_ctype import values
 from flask import Blueprint, jsonify, request, session
 from flask_restful import http_status_message
 from sqlalchemy import text, and_
-from sqlalchemy.orm import RelationshipProperty
+from sqlalchemy.orm import RelationshipProperty, ColumnProperty
 
+from factories.BookFactory import BookFactory
 from model.Book import Book
 from model.Author import Author
 from model.Work import Work
@@ -23,7 +24,7 @@ class BookController:
         self.book_bp.add_url_rule("/addBook", "add_book", self.add_book, methods=["POST"])
         self.book_bp.add_url_rule("/deleteBookById/<int:book_id>", "delete_book", self.delete_book, methods=["DELETE"])
         self.book_bp.add_url_rule("/getBookByTitle/<string:title>", "get_book_by_title", self.get_book_by_title, methods=["GET"])
-        self.book_bp.add_url_rule("/filter", "filter_books", self.filter_books, methods=["GET"])
+        self.book_bp.add_url_rule("/filterBooks", "filter_books", self.filter_books, methods=["GET"])
 
 
         app.register_blueprint(self.book_bp)
@@ -64,34 +65,11 @@ class BookController:
 
         work = Work.query.filter_by(title=work_title).first()
         if not work:
-            work = Work(title=work_title, open_library_key=data.get("work_open_library_key"), author_id=author.id)
+            work = Work(title=work_title, open_library_key=data.get("work_open_library_key"))
             db.session.add(work)
             db.session.commit()
 
-        book = Book(
-            title=title,
-            open_library_key=open_library_key,
-            author_id=author.id,
-            work_id=work.id,
-            publishers=data.get("publishers"),
-            number_of_pages=data.get("number_of_pages"),
-            isbn_10=data.get("isbn_10"),
-            edition_count=data.get("edition_count"),
-            subjects=", ".join(data.get("subjects", [])),
-            publish_date=data.get("publish_date"),
-            cover_id=data.get("cover_id"),
-            first_publish_year=data.get("first_publish_year"),
-            languages=", ".join(data.get("languages", [])) if data.get("languages") else None,
-            lending_edition=data.get("lending_edition"),
-            lending_identifier=data.get("lending_identifier"),
-            project_gutenberg_ids=", ".join(data.get("project_gutenberg_ids", [])),
-            librivox_ids=", ".join(data.get("librivox_ids", [])),
-            ia_identifiers=", ".join(data.get("ia_identifiers", [])),
-            public_scan=data.get("public_scan", False),
-        )
-
-        db.session.add(book)
-        db.session.commit()
+        book = BookFactory.create_from_json(book_json=data,book_key=data.get("open_library_key"), author=author, work=work)
         return jsonify({"message": f"Book with title '{title}'' added successfully", "book_Db_Id": book.id}), 201
 
     def filter_books(self):
@@ -101,8 +79,13 @@ class BookController:
         for field, value in filters.items():
             if hasattr(Book, field):
                 attribute = getattr(Book, field)
-                r.extend( db.session.query(Book).filter(attribute == value).all() )
-        return  jsonify( [book.to_dict() for book in r] ), 200
+
+                if isinstance(Book.__mapper__.attrs[field], RelationshipProperty):
+                    r.extend(db.session.query(Book).filter(attribute.has(**value)).all())
+
+                elif isinstance(Book.__mapper__.attrs[field], ColumnProperty):
+                    r.extend(db.session.query(Book).filter(attribute == value).all())
+        return  jsonify( [book.to_dict() for book in r  ] ), 200
 
     def delete_book(self, book_id):
         """Deletes a book from its DB id"""
